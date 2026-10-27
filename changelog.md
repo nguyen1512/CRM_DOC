@@ -6,16 +6,17 @@
 >
 > **Cập nhật lần cuối: 2026-10-27**
 
-## 2026-10-27 — Chuyển tài liệu sang domain thật
+## 2026-10-27 — Chuyển tài liệu sang domain thật, phủ đủ 11 vai trò
 
 - Toàn bộ tài liệu hướng dẫn chuyển từ artifact Claude sang trang này (`anucrm.vn/docs`) — dễ tìm, có
   search, không phụ thuộc link ngoài.
-- Thêm đầy đủ mục [HOC](/hoc/) (xem bên dưới) — role HOC đã đổi hẳn từ dùng chung quyền CM sang
-  dashboard chỉ xem.
-- Thêm khung sẵn cho 5 vai trò chưa có nội dung đầy đủ: [PPGV](/ppgv/), [TPGV](/tpgv/),
-  [Kế toán](/accounting/), [BO](/bo/), [Sales](/sales/) — nội dung chi tiết sẽ bổ sung dần.
+- Thêm đầy đủ mục [HOC](/hoc/) — role HOC đã đổi hẳn từ dùng chung quyền CM sang dashboard chỉ xem.
+- Thêm đầy đủ nội dung 5 vai trò còn thiếu: [PPGV](/ppgv/), [TPGV](/tpgv/), [Kế toán](/accounting/),
+  [BO](/bo/), [Sales / Sales Lead](/sales/).
 - Thêm 2 trang cảnh báo: [Manager](/manager/), [Student Support](/student-support/) — nêu rõ khoảng
   cách giữa quyền hiển thị trên menu và quyền thật.
+- Thêm cơ chế tự soạn nháp changelog từ diff code thật mỗi lần có người push lên `main` (xem
+  `scripts/SETUP.md` trong repo `CRM_DOC`) — chạy được sau khi thêm API key + secrets.
 
 ## 2026-10 — Admin / Kế toán
 
