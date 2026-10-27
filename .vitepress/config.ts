@@ -6,6 +6,7 @@ export default defineConfig({
   lang: "vi-VN",
   base: "/docs/",
   lastUpdated: true,
+  srcExclude: ["pending-review/**", "DEPLOY.md"],
 
   themeConfig: {
     nav: [

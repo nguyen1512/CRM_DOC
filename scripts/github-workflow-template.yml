@@ -1,0 +1,74 @@
+# Mẫu workflow — copy file này vào ANU_API/.github/workflows/docs-changelog-draft.yml
+# và FRONTEND_ANU_F/.github/workflows/docs-changelog-draft.yml, chỉ đổi đúng 1 dòng "REPO_NAME"
+# ở mỗi bản (xem chú thích "ĐỔI Ở ĐÂY" bên dưới). Không đổi gì khác.
+#
+# Cần 2 secret ở MỖI repo (ANU_API và FRONTEND_ANU_F) trước khi dùng:
+#   - ANTHROPIC_API_KEY : key thật từ https://console.anthropic.com/settings/keys
+#   - DOCS_REPO_PAT      : GitHub Personal Access Token (fine-grained), chỉ cấp quyền
+#                          Contents: Read&Write + Pull requests: Read&Write lên đúng repo CRM_DOC.
+#                          Tạo ở: https://github.com/settings/personal-access-tokens/new
+
+name: Draft changelog from this push
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  draft-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo này (đủ lịch sử để diff)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Lấy diff + commit log của đúng lượt push này
+        run: |
+          git diff "${{ github.event.before }}" "${{ github.event.after }}" -- . \
+            ':(exclude)package-lock.json' ':(exclude)*.lock' ':(exclude)generated/**' \
+            > /tmp/diff.patch
+          git log "${{ github.event.before }}..${{ github.event.after }}" \
+            --format='%s%n%b%n---' > /tmp/commit-log.txt
+
+      - name: Checkout repo tài liệu (CRM_DOC)
+        uses: actions/checkout@v4
+        with:
+          repository: nguyen1512/CRM_DOC
+          token: ${{ secrets.DOCS_REPO_PAT }}
+          path: docs-repo
+
+      - name: Soạn nháp bằng Claude API
+        env:
+          REPO_NAME: ANU_API # ĐỔI Ở ĐÂY — bản FRONTEND_ANU_F đổi thành "FRONTEND_ANU_F"
+          DIFF_FILE: /tmp/diff.patch
+          COMMIT_LOG_FILE: /tmp/commit-log.txt
+          DOCS_DIR: ${{ github.workspace }}/docs-repo
+          OUTPUT_FILE: ${{ github.workspace }}/docs-repo/pending-review/draft.md
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          mkdir -p "${{ github.workspace }}/docs-repo/pending-review"
+          node docs-repo/scripts/draft-changelog.mjs
+
+      - name: Mở Pull Request vào CRM_DOC với bản nháp
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_REPO_PAT }}
+        working-directory: docs-repo
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          BRANCH="auto/changelog-$SHORT_SHA"
+          FILE="pending-review/$(date +%Y-%m-%d)-${REPO_NAME:-repo}-$SHORT_SHA.md"
+          mv pending-review/draft.md "$FILE"
+          git config user.name "docs-bot"
+          git config user.email "docs-bot@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add "$FILE"
+          git commit -m "docs(changelog): draft from ${{ github.repository }}@$SHORT_SHA"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Nháp changelog: ${{ github.repository }} @ $SHORT_SHA" \
+            --body "Tự soạn từ push ${{ github.event.after }}. **Đọc kỹ trước khi merge vào changelog.md chính thức — đây chỉ là nháp.**" \
+            --base main --head "$BRANCH"
