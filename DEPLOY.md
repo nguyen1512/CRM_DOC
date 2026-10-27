@@ -23,15 +23,28 @@ Chọn 1 trong 2 cách:
 rsync -avz --delete .vitepress/dist/ user@your-vps:/var/www/anu-crm-docs/
 ```
 
-**Cách B — clone + build thẳng trên VPS (nếu muốn tự động qua CI sau này):**
+**Cách B — clone + build thẳng trên VPS (đang dùng, repo: `github.com/nguyen1512/CRM_DOC`):**
 
 ```bash
 # Trên VPS
-git clone <repo-url-anu-crm-docs> ~/projects/anu-crm-docs
-cd ~/projects/anu-crm-docs
+git clone git@github.com:nguyen1512/CRM_DOC.git ~/projects/CRM_DOC
+cd ~/projects/CRM_DOC
 npm install
 npm run docs:build
 mkdir -p /var/www/anu-crm-docs
+cp -r .vitepress/dist/* /var/www/anu-crm-docs/
+```
+
+> Nếu VPS chưa clone được qua SSH (repo riêng tư, VPS chưa có deploy key) — dùng HTTPS +
+> [Personal Access Token](https://github.com/settings/tokens) thay cho `git@github.com:...`:
+> `git clone https://<token>@github.com/nguyen1512/CRM_DOC.git ~/projects/CRM_DOC`
+
+**Cập nhật nội dung sau này (Cách B):**
+
+```bash
+cd ~/projects/CRM_DOC
+git pull
+npm run docs:build
 cp -r .vitepress/dist/* /var/www/anu-crm-docs/
 ```
 
